@@ -10,3 +10,9 @@ https://ducklarry.com/.
 - `beta/` — the page for beta testers (16–30 November 2026), in English and
   Ukrainian: what DuckLarry is, how to install it through TestFlight's public
   link, and how to send feedback. Not indexed by search engines.
+- `confirmed/` — where the link in the email that confirms an address leads
+  (Supabase's Site URL), in English, Ukrainian and Spanish: the address is
+  confirmed, go back to the app and sign in; or, when Supabase reports an
+  error, that the link did not work. It drops the fragment Supabase adds, so
+  the sign-in tokens do not stay in the address bar. Not indexed by search
+  engines.
