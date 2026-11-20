@@ -11,8 +11,16 @@
   // outcome in the fragment: tokens when it worked, error=… when it did not.
   // The page needs neither; it only tells the two apart, then drops the
   // fragment so the tokens do not stay in the address bar or the history.
+  //
+  // A link for a new password comes here too when the server is not told
+  // where else to go — sent from the dashboard, say — and belongs on the page
+  // that takes the password, with its fragment.
   (function () {
     var fragment = location.hash || "";
+    if (/(^|[#&])type=recovery(&|$)/.test(fragment)) {
+      location.replace("/reset/" + fragment);
+      return;
+    }
     if (/(^|[#&])error(_code)?=/.test(fragment)) {
       document.documentElement.className = "failed";
     }

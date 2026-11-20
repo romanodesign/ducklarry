@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<title>DuckLarry</title>
+<script>
+  // The link in the email that resets a password opens this page with a
+  // one-time code in the fragment: #token_hash=…&type=recovery. Opening the
+  // page uses nothing up — the code is traded for a session only when the new
+  // password is saved — so a mail service that opens links before the reader
+  // does (Microsoft's Safe Links, for one) leaves the link working. The
+  // fragment never reaches this site's server, and is dropped from the
+  // address bar at once; the code stays in this page's memory only.
+  //
+  // Also taken: a session itself, #access_token=…&type=recovery, which is
+  // how Supabase's own link for a reset arrives (passed on by confirmed/).
+  (function () {
+    var fragment = location.hash.replace(/^#/, "");
+    var found = {};
+    fragment.split("&").forEach(function (pair) {
+      if (!pair) return;
+      var at = pair.indexOf("=");
+      var name = at < 0 ? pair : pair.slice(0, at);
+      var value = at < 0 ? "" : pair.slice(at + 1);
+      try { found[decodeURIComponent(name)] = decodeURIComponent(value.replace(/\+/g, " ")); } catch (e) {}
+    });
+    var recovery = found.type === "recovery";
+    window.resetLink = {
+      code: recovery && found.token_hash ? found.token_hash : null,
+      session: recovery && found.access_token ? found.access_token : null
+    };
+    var usable = window.resetLink.code || window.resetLink.session;
+    document.documentElement.className = usable ? "ready" : "failed";
+    if (fragment) {
+      try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+    }
+  })();
+</script>
+<style>
+  :root { color-scheme: light dark; --text: #1c1c1e; --muted: #6e6e73; --bg: #ffffff; --link: #0066cc;
+          --field: #f2f2f7; --line: #d1d1d6; --bad: #d70015; }
+  @media (prefers-color-scheme: dark) {
+    :root { --text: #f2f2f7; --muted: #a1a1a6; --bg: #000000; --link: #4da3ff;
+            --field: #1c1c1e; --line: #3a3a3c; --bad: #ff6961; }
+  }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 17px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 42rem; margin: 0 auto; padding: 2rem 16px 4rem; }
+  h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 .5rem; }
+  p { overflow-wrap: anywhere; }
+  a { color: var(--link); }
+  .muted { color: var(--muted); }
+  label { display: block; font-weight: 600; margin: 1.5rem 0 .4rem; }
+  .field { display: flex; align-items: center; background: var(--field); border: 1px solid var(--line);
+           border-radius: 14px; padding: 0 6px 0 14px; max-width: 26rem; }
+  .field input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--text);
+                 font: inherit; padding: 12px 0; outline: none; }
+  .field:focus-within { border-color: #FF57D5; }
+  .eye { border: 0; background: transparent; color: var(--muted); width: 44px; height: 44px;
+         display: grid; place-items: center; cursor: pointer; border-radius: 10px; }
+  .eye svg { width: 22px; height: 22px; }
+  .eye .off { display: none; }
+  .shown .eye .on { display: none; }
+  .shown .eye .off { display: block; }
+  .problem { color: var(--bad); margin: .6rem 0 0; }
+  .key { margin-top: 1.4rem; border: 0; border-radius: 14px; background: #FF57D5; color: #000;
+         font: 600 17px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+         padding: 18px 28px; cursor: pointer; box-shadow: inset 0 -4px 4px rgba(176, 0, 132, .45); }
+  .key:disabled { background: var(--line); color: var(--muted); box-shadow: none; cursor: default; }
+  .form, .done, .bad { display: none; }
+  .ready .form, .done-state .done, .failed .bad { display: block; }
+</style>
+</head>
+<body>
+<main>
+<section class="form">
+<h1>Choose a new password</h1>
+<p class="muted">For your DuckLarry account. At least 6 characters.</p>
+<form id="form" novalidate>
+<label for="password">New password</label>
+<div class="field" id="field">
+<input id="password" name="password" type="password" autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false" minlength="6" required autofocus>
+<button type="button" class="eye" id="eye" aria-label="Show password">
+<svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+<svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a17.7 17.7 0 0 1-3.2 4.1M6.6 6.6C3.9 8.3 2 12 2 12s3.6 7 10 7a9.9 9.9 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+</button>
+</div>
+<p class="problem" id="problem" role="alert" hidden></p>
+<button type="submit" class="key" id="save">Save password</button>
+</form>
+</section>
+
+<section class="done">
+<h1>Password changed</h1>
+<p>Go back to DuckLarry and sign in with your email and your new password.</p>
+</section>
+
+<section class="bad">
+<h1>This link didn't work</h1>
+<p>It may have expired or been used already. In DuckLarry, tap “Forgot password?” again for a new link. If that doesn't help, write to us at <a href="mailto:ducklarry.main@gmail.com">ducklarry.main@gmail.com</a>.</p>
+</section>
+</main>
+<script>
+  (function () {
+    // The project's public key, as the app carries it: it names the project,
+    // not a person, and reaches nobody's data on its own.
+    var server = "https://ahppbrsueguewvvxgusi.supabase.co";
+    var key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFocHBicnN1ZWd1ZXd2dnhndXNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1Njk1NDksImV4cCI6MjEwMzE0NTU0OX0.DQvEdXHz6mlpNNysTF2rzzycvpZ2sQZCVmFoPEUc5Bw";
+    var link = window.resetLink;
+    var form = document.getElementById("form");
+    var field = document.getElementById("field");
+    var input = document.getElementById("password");
+    var eye = document.getElementById("eye");
+    var problem = document.getElementById("problem");
+    var save = document.getElementById("save");
+    var finished = false;
+
+    function say(words) { problem.textContent = words; problem.hidden = !words; }
+    function show(state) { document.documentElement.className = state; }
+
+    // Letters as the app counts them, so a password taken here is one the
+    // app's keys take too: an emoji is one letter there and up to four
+    // bytes at the server.
+    function letters(text) {
+      if (window.Intl && Intl.Segmenter) {
+        var count = 0, parts = new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(text);
+        for (var part of parts) count++;
+        return count;
+      }
+      return Array.from(text).length;
+    }
+    // The server keeps at most 72 bytes of a password and refuses more.
+    function bytes(text) { return new TextEncoder().encode(text).length; }
+
+    // A session this page opened is ended as soon as it is no longer needed:
+    // here alone, so the app's own sessions stay signed in. Sent so that it
+    // goes even as the page closes.
+    function endSession() {
+      if (!link.session) return;
+      var token = link.session;
+      link.session = null;
+      try {
+        fetch(server + "/auth/v1/logout?scope=local", { method: "POST", keepalive: true,
+          headers: { "apikey": key, "Authorization": "Bearer " + token } }).catch(function () {});
+      } catch (e) {}
+    }
+    window.addEventListener("pagehide", endSession);
+
+    eye.addEventListener("click", function () {
+      var shown = input.type === "password";
+      input.type = shown ? "text" : "password";
+      field.classList.toggle("shown", shown);
+      eye.setAttribute("aria-label", shown ? "Hide password" : "Show password");
+      input.focus();
+    });
+
+    function codeOf(body) { return String(body.error_code || body.code || body.error || ""); }
+    function failed(answer, body) {
+      var code = codeOf(body);
+      return answer.status === 401 || answer.status === 403 || /otp|session|jwt|expired|not_found|invalid/.test(code);
+    }
+
+    // The code from the email, traded once for a session; the session kept
+    // for another try at the password, should the first one be refused.
+    function session() {
+      if (link.session) return Promise.resolve(link.session);
+      return fetch(server + "/auth/v1/verify", { method: "POST",
+        headers: { "apikey": key, "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "recovery", token_hash: link.code }) })
+        .then(function (answer) {
+          return answer.json().catch(function () { return {}; }).then(function (body) {
+            if (answer.ok && body.access_token) {
+              link.code = null;
+              link.session = body.access_token;
+              return link.session;
+            }
+            if (answer.status === 429) throw { say: "Too many attempts just now. Wait a minute and try again." };
+            if (answer.ok || failed(answer, body) || answer.status === 400) throw { failed: true };
+            throw { say: "Something went wrong (error " + answer.status + "). Try again in a moment." };
+          });
+        });
+    }
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      if (finished || save.disabled) return;
+      if (!link.code && !link.session) { show("failed"); return; }
+      var password = input.value;
+      if (letters(password) < 6) { say("Use at least 6 characters."); return; }
+      if (bytes(password) > 72) { say("That password is too long. Choose a shorter one."); return; }
+      say("");
+      save.disabled = true;
+      save.textContent = "Saving…";
+      session()
+        .then(function (token) {
+          return fetch(server + "/auth/v1/user", { method: "PUT",
+            headers: { "apikey": key, "Authorization": "Bearer " + token, "Content-Type": "application/json" },
+            body: JSON.stringify({ password: password }) });
+        })
+        .then(function (answer) {
+          if (answer.ok) {
+            finished = true;
+            endSession();
+            input.value = "";
+            show("done-state");
+            return;
+          }
+          return answer.json().catch(function () { return {}; }).then(function (body) {
+            var code = codeOf(body);
+            if (code === "same_password") {
+              say("That's the password the account has already. Choose another, or go back to the app and sign in with it.");
+            } else if (code === "weak_password") {
+              say("Choose a stronger password — a longer one, or one you haven't used anywhere else.");
+            } else if (code === "validation_failed" || answer.status === 400) {
+              say("That password can't be used. Choose another one, of at least 6 characters.");
+            } else if (answer.status === 429) {
+              say("Too many attempts just now. Wait a minute and try again.");
+            } else if (failed(answer, body)) {
+              link.session = null;
+              show("failed");
+            } else {
+              say("Something went wrong (error " + answer.status + "). Try again in a moment.");
+            }
+          });
+        })
+        .catch(function (trouble) {
+          if (trouble && trouble.failed) { show("failed"); return; }
+          say(trouble && trouble.say ? trouble.say : "No connection. Try again when you have signal.");
+        })
+        .then(function () { save.disabled = false; save.textContent = "Save password"; });
+    });
+  })();
+</script>
+</body>
+</html>
