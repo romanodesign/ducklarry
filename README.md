@@ -29,3 +29,10 @@ https://ducklarry.com/.
   page is left. Supabase's own link, with the session in the fragment, works
   too. When the link was no good, it says so and how to get a new one. Not
   indexed by search engines.
+- `fonts/` — the app's faces, as every page is set: Rubik for all the words,
+  Rubik Spray Paint for the start page's title. Made by `tools/web-fonts.py`
+  in the app's own repository from the fonts the app ships, never by hand:
+  Rubik as it is, packed as woff2; Spray Paint cut to the letters of that
+  title. It also checks that no page names a system font. Run it again after
+  the app's fonts are cut anew or the start page's title changes. The OFL
+  texts are beside them.
